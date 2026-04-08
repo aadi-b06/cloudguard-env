@@ -12,5 +12,9 @@ dependencies = [
     "pydantic",
     "openai",
     "fastapi",
-    "uvicorn"
+    "uvicorn",
+    "openenv>=0.2.0"
 ]
+
+[project.scripts]
+server = "server.app:main"
