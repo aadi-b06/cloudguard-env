@@ -16,6 +16,17 @@ The environment relies on structured JSON (simulating cloud provider APIs):
 ## Setup & Usage
 **Prerequisites:** Python 3.10+, Docker (optional)
 
+Baseline Scores
+Baseline run using Llama-3.3-70b-versatile via OpenAI Client format.
+
+Easy Task: Success (Score > 0.8)
+
+Medium Task: Failed (Agent looped on deletion actions instead of tagging)
+
+Hard Task: Success (Score > 0.8)
+
+Note: The baseline agent demonstrates standard LLM looping behavior, proving the environment requires robust memory/RL techniques to master consistently.
+
 ```bash
 # 1. Install dependencies
 pip install -r requirements.txt
@@ -27,3 +38,4 @@ export HF_TOKEN="your_hf_token_here"
 
 # 3. Run Inference Baseline
 python inference.py
+
