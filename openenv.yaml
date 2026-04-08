@@ -1,0 +1,3 @@
+name: cloudguard-env
+version: "1.0.0"
+description: "A Cloud FinOps environment where the agent manages cloud resources to optimize costs and enforce governance."
