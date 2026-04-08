@@ -1,4 +1,10 @@
+import sys
+import os
+# This allows app.py to find env.py and schema.py in the main folder
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from fastapi import FastAPI
+import uvicorn
 from schema import Action, Observation
 from env import CloudGuardEnv
 
@@ -27,3 +33,9 @@ def step(action: Action):
         "done": done,
         "info": info
     }
+
+def main():
+    uvicorn.run(app, host="0.0.0.0", port=7860)
+
+if __name__ == "__main__":
+    main()
