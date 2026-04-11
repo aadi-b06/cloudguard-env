@@ -25,43 +25,53 @@ class CloudGuardEnv:
     def get_state(self):
         return self.state
 
+    def _clamp_reward(self, reward: float) -> float:
+        """Ensures reward is strictly between 0 and 1 (exclusive)."""
+        # We use 0.01 as the floor and 0.99 as the ceiling
+        return float(max(0.01, min(0.99, reward)))
+
     def step(self, action: Action) -> tuple[Observation, float, bool, dict]:
         resource = next((r for r in self.state if r.id == action.resource_id), None)
+        
+        # Resource not found error
         if not resource:
-            return self._get_obs("Error: Resource not found."), -0.1, False, {"error": "not_found"}
+            return self._get_obs("Error: Resource not found."), self._clamp_reward(-0.1), False, {"error": "not_found"}
 
         msg = ""
-        reward = 0.0
+        raw_reward = 0.0
 
         if action.action_type == "delete" and resource.type == "ebs":
             if resource.state == "available":
                 resource.state = "deleted"
                 msg = f"Deleted unattached volume {resource.id}"
-                reward = 0.5 # Good partial progress
+                raw_reward = 0.55 
             else:
                 msg = f"Cannot delete in-use volume {resource.id}"
-                reward = -0.5 # Penalize destructive behavior
+                raw_reward = -0.45 # Clamped to 0.01 later
 
         elif action.action_type == "stop" and resource.type == "ec2":
             resource.state = "stopped"
             msg = f"Stopped instance {resource.id}"
-            reward = 0.2
+            raw_reward = 0.25
 
         elif action.action_type == "terminate" and resource.type == "ec2":
             resource.state = "terminated"
             msg = f"Terminated instance {resource.id}"
-            reward = 0.1
+            raw_reward = 0.15
 
         elif action.action_type == "add_tag":
             if action.tag_key and action.tag_value:
                 resource.tags[action.tag_key] = action.tag_value
                 msg = f"Added tag {action.tag_key}={action.tag_value} to {resource.id}"
-                reward = 0.2
+                raw_reward = 0.25
             else:
                 msg = "Missing tag key/value"
-                reward = -0.1
+                raw_reward = -0.15
         else:
             msg = f"Invalid action {action.action_type} for {resource.type}"
-            reward = -0.1
+            raw_reward = -0.15
 
+        # Final check: the validator requires scores strictly between 0 and 1
+        reward = self._clamp_reward(raw_reward)
+        
         return self._get_obs(msg), reward, False, {}
